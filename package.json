@@ -1,14 +1,19 @@
 {
   "name": "learn2dgame-js",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "A small module to help new coders to learn 2D programming",
   "main": "./src/index.js",
   "exports": {
     ".": "./src/index.js"
   },
   "type": "module",
+  "files": [
+    "src",
+    "README.md",
+    "LICENSE"
+  ],
   "scripts": {
-    "start": "node src/test.js"
+    "build": "echo 'no build step needed'"
   },
   "repository": {
     "type": "git",
@@ -28,7 +33,7 @@
     "brap"
   ],
   "author": "Lukas Söderlund (liberaa)",
-  "license": "ISC",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/Liberaa/module/issues"
   },
