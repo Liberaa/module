@@ -1,0 +1,34 @@
+{
+  "name": "module",
+  "version": "1.0.0",
+  "description": "A small module to help new coders to learn 2d programing",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node src/test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Liberaa/module.git"
+  },
+  "keywords": [
+    "game",
+    "2d",
+    "engine",
+    "platformer",
+    "collision",
+    "oop",
+    "npm",
+    "learning",
+    "learn2d",
+    "2dgame",
+    "brap"
+  ],
+  "author": "Lukas Söderlund (liberaa)",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Liberaa/module/issues"
+  },
+  "homepage": "https://github.com/Liberaa/module#readme"
+}
