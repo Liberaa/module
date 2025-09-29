@@ -2,18 +2,20 @@
   "name": "learn2dgame-js",
   "version": "1.0.4",
   "description": "A small module to help new coders to learn 2D programming",
-  "main": "./src/index.js",
+  "main": "./dist/learn2dgame-js.cjs",
+  "module": "./dist/learn2dgame-js.js",
   "exports": {
-    ".": "./src/index.js"
+    "import": "./dist/learn2dgame-js.js",
+    "require": "./dist/learn2dgame-js.cjs"
   },
   "type": "module",
   "files": [
-    "src",
+    "dist",
     "README.md",
     "LICENSE"
   ],
   "scripts": {
-    "build": "echo 'no build step needed'"
+    "build": "rollup -c"
   },
   "repository": {
     "type": "git",
@@ -37,5 +39,8 @@
   "bugs": {
     "url": "https://github.com/Liberaa/module/issues"
   },
-  "homepage": "https://github.com/Liberaa/module#readme"
+  "homepage": "https://github.com/Liberaa/module#readme",
+  "devDependencies": {
+    "rollup": "^4.0.0"
+  }
 }
