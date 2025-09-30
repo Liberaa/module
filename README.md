@@ -1,6 +1,8 @@
 # learn2dgame-js
 
-A lightweight, beginner-friendly JavaScript library for learning 2D game development in the browser. Perfect for students, educators, and anyone wanting to learn javascript game development (Beginner Friendly).
+ beginner-friendly JavaScript library for learning 2D game development in the browser. Perfect for students, educators, and anyone wanting to learn javascript game development (Beginner Friendly).
+
+ ## Clean code are written in this repository.
 
 # Link To Final Version : https://github.com/Liberaa/module 
 # Link To Working repository : https://github.com/Liberaa/NpmGamePackage 
