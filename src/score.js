@@ -1,3 +1,5 @@
+// Singleton pattern: Only one Score instance can exist
+// This variable stores it
 let scoreInstance = null
 
 export class Score {
@@ -5,6 +7,8 @@ export class Score {
   #element = null
 
   constructor() {
+    // If an instance already exists, return that instead of creating a new one
+    // This ensures only ONE score display exists in the entire game
     if (scoreInstance) return scoreInstance
 
     this.#element = document.createElement('div')
@@ -21,6 +25,7 @@ export class Score {
     document.body.appendChild(this.#element)
 
     this.update()
+    // Store this instance so future constructor calls return it
     scoreInstance = this
   }
 
