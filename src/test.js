@@ -119,7 +119,7 @@ scenes.add(sceneTen, null)
 scenes.set(0)
 
 // Start the Game
-new Game('wasd', {
+new Game('platform', {
   movementSpeed: 12,
   gravityForce: 0.6,
   jumpStrengthValue: 50,
