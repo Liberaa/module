@@ -14,6 +14,8 @@ class Player extends GameElement {
     })
     this.velocityY = 0
     this.isJumping = false
+
+    this.htmlElement.id = 'player'
   }
 
   getBounds() {

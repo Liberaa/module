@@ -18,6 +18,9 @@ export class Obstacle {
     this.element.style.border = border
     document.body.appendChild(this.element)
 
+this.element.id = "obstacle"
+
+
     obstacles.push(this)
   }
 
@@ -52,6 +55,9 @@ export class Coin {
     this.element.style.height = this.height + 'px'
     this.element.style.background = 'yellow'
     this.element.style.borderRadius = '50%'
+
+    this.element.id = "coin"
+
     document.body.appendChild(this.element)
 
     coins.push(this)
