@@ -111,11 +111,28 @@ const obstacles = []
 const coins = []
 
 class Obstacle {
-  constructor({ positionX = 0, positionY = 0, width = 50, height = 50, color = 'blue', border = '2px solid white' } = {}) {
+  constructor({
+    positionX = 0,
+    positionY = 0,
+    width = 50,
+    height = 50,
+    color = 'blue',
+    border = '2px solid white',
+    velocityX = 0,
+    velocityY = 0,
+    disappearOnLand = false,
+    deadly = false,
+    id = null
+  } = {}) {
     this.x = positionX
     this.y = positionY
     this.width = width
     this.height = height
+
+    this.vx = velocityX
+    this.vy = velocityY
+    this.disappearOnLand = disappearOnLand
+    this.deadly = deadly
 
     this.element = document.createElement('div')
     this.element.style.position = 'absolute'
@@ -125,12 +142,39 @@ class Obstacle {
     this.element.style.height = this.height + 'px'
     this.element.style.background = color
     this.element.style.border = border
-
-    // CSS class for styling
     this.element.classList.add('obstacle')
+
+    if (id) {
+      this.element.id = id
+    }
 
     document.body.appendChild(this.element)
     obstacles.push(this)
+  }
+
+  update() {
+    this.x += this.vx
+    this.y += this.vy
+
+    if (this.x < 0) {
+      this.x = 0
+      this.vx *= -1
+    }
+    if (this.x + this.width > window.innerWidth) {
+      this.x = window.innerWidth - this.width
+      this.vx *= -1
+    }
+    if (this.y < 0) {
+      this.y = 0
+      this.vy *= -1
+    }
+    if (this.y + this.height > window.innerHeight) {
+      this.y = window.innerHeight - this.height
+      this.vy *= -1
+    }
+
+    this.element.style.left = this.x + 'px'
+    this.element.style.top = this.y + 'px'
   }
 
   getBounds() {
@@ -148,6 +192,8 @@ class Obstacle {
     this.element.remove()
   }
 }
+
+
 
 class Coin {
   constructor({ positionX = 0, positionY = 0, size = 20 } = {}) {
@@ -243,38 +289,52 @@ class AABBCollider {
       a.bottom > b.top
   }
 
-  static resolvePlayerVsObstacles(player) {
-    let vy = player.velocityY
-    let isJumping = player.isJumping
-    const p = player.getBounds()
+static resolvePlayerVsObstacles(player) {
+  let vy = player.velocityY
+  let isJumping = player.isJumping
+  const p = player.getBounds()
 
-    for (const obstacle of obstacles) {
-      const o = obstacle.getBounds()
-      if (!this.overlaps(p, o)) continue
+  for (let i = obstacles.length - 1; i >= 0; i--) {
+    const obstacle = obstacles[i]
+    const o = obstacle.getBounds()
+    if (!this.overlaps(p, o)) continue
 
-      const overlapTop = p.bottom - o.top
-      const overlapBottom = o.bottom - p.top
-      const overlapLeft = p.right - o.left
-      const overlapRight = o.right - p.left
-      const minOverlap = Math.min(overlapTop, overlapBottom, overlapLeft, overlapRight)
+    const overlapTop = p.bottom - o.top
+    const overlapBottom = o.bottom - p.top
+    const overlapLeft = p.right - o.left
+    const overlapRight = o.right - p.left
+    const minOverlap = Math.min(overlapTop, overlapBottom, overlapLeft, overlapRight)
 
-      if (minOverlap === overlapTop && vy >= 0) {
-        player.positionY = o.top - p.height
-        vy = 0
-        isJumping = false
-      } else if (minOverlap === overlapBottom && vy < 0) {
-        player.positionY = o.bottom
-        vy = 0
-      } else if (minOverlap === overlapLeft) {
-        player.positionX = o.left - p.width
-      } else if (minOverlap === overlapRight) {
-        player.positionX = o.right
+    if (minOverlap === overlapTop && vy >= 0) {
+      // landar på hindret
+      player.positionY = o.top - p.height
+      vy = 0
+      isJumping = false
+
+      if (obstacle.deadly) {
+        // döda spelaren (snabb variant)
+        window.location.reload()
+        return
       }
-    }
 
-    player.velocityY = vy
-    player.isJumping = isJumping
+      if (obstacle.disappearOnLand) {
+        obstacle.remove()
+        obstacles.splice(i, 1)
+      }
+    } else if (minOverlap === overlapBottom && vy < 0) {
+      player.positionY = o.bottom
+      vy = 0
+    } else if (minOverlap === overlapLeft) {
+      player.positionX = o.left - p.width
+    } else if (minOverlap === overlapRight) {
+      player.positionX = o.right
+    }
   }
+
+  player.velocityY = vy
+  player.isJumping = isJumping
+}
+
 
   static handleCoinPickups(player) {
     const p = player.getBounds()
@@ -333,26 +393,32 @@ class Game {
     requestAnimationFrame(this.animate)
   }
 
-  animate() {
-    this.#animateHorizontalMovement()
+animate() {
+  this.#animateHorizontalMovement()
 
-    if (this.input.playerIsUsingWASD()) {
-      this.#animateWASDStyle()
-    } else if (this.input.playerIsUsingPlatform()) {
-      this.#animatePlatformStyle()
-    }
-
-    AABBCollider.resolvePlayerVsObstacles(this.player)
-    this.player.updatePosition()
-    AABBCollider.handleCoinPickups(this.player)
-
-    const sm = typeof window !== 'undefined' ? window.__sceneManager : null
-    if (sm && typeof sm.checkProgress === 'function') {
-      sm.checkProgress()
-    }
-
-    requestAnimationFrame(this.animate)
+  if (this.input.playerIsUsingWASD()) {
+    this.#animateWASDStyle()
+  } else if (this.input.playerIsUsingPlatform()) {
+    this.#animatePlatformStyle()
   }
+
+  // 🔹 Uppdatera alla obstacles med velocity
+  for (const obs of obstacles) {
+    if (typeof obs.update === 'function') obs.update()
+  }
+
+  AABBCollider.resolvePlayerVsObstacles(this.player)
+  this.player.updatePosition()
+  AABBCollider.handleCoinPickups(this.player)
+
+  const sm = typeof window !== 'undefined' ? window.__sceneManager : null
+  if (sm && typeof sm.checkProgress === 'function') {
+    sm.checkProgress()
+  }
+
+  requestAnimationFrame(this.animate)
+}
+
 
   #animateHorizontalMovement() {
     if (this.input.playerWantsToGoLeft() && this.player.positionX > 0) {
