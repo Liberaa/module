@@ -1,4 +1,5 @@
-// Importera från din dist
+// DENNA DEL ÄR CHATGPT PÅGRUND AV ATT JAG VILL TESTA TILL MINA NPM ANVÄNDARE :
+// SOM VILL HA VISSA FEUTURES SO JAG INTE BRYR MIG OM. 
 import { Game, Obstacle, Coin, SceneManager, score, Menu } from '../dist/learn2dgame-js.js'
 
 // Menu för att testa att UI fortfarande funkar
