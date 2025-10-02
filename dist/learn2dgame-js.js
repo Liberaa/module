@@ -126,7 +126,7 @@ class Obstacle {
     this.element.style.background = color
     this.element.style.border = border
 
-    // add CSS class
+    // CSS class for styling
     this.element.classList.add('obstacle')
 
     document.body.appendChild(this.element)
@@ -165,7 +165,7 @@ class Coin {
     this.element.style.background = 'yellow'
     this.element.style.borderRadius = '50%'
 
-    // add CSS class
+    // CSS class for styling
     this.element.classList.add('coin')
 
     document.body.appendChild(this.element)
@@ -302,7 +302,7 @@ class Player extends GameElement {
     this.velocityY = 0
     this.isJumping = false
 
-    // add CSS class
+    // CSS class for styling
     this.htmlElement.classList.add('player')
   }
 
@@ -317,3 +317,187 @@ class Player extends GameElement {
     }
   }
 }
+
+class Game {
+  constructor(controlScheme = 'platform', options = {}) {
+    this.movementSpeed = options.movementSpeed || 8
+    this.gravity = options.gravityForce || 0.5
+    this.jumpStrength = options.jumpStrengthValue || 12
+
+    this.player = new Player({ color: options.color || 'red' })
+    this.input = new PlayerInput(controlScheme)
+
+    this.groundY = window.innerHeight - this.player.elementHeight
+
+    this.animate = this.animate.bind(this)
+    requestAnimationFrame(this.animate)
+  }
+
+  animate() {
+    this.#animateHorizontalMovement()
+
+    if (this.input.playerIsUsingWASD()) {
+      this.#animateWASDStyle()
+    } else if (this.input.playerIsUsingPlatform()) {
+      this.#animatePlatformStyle()
+    }
+
+    AABBCollider.resolvePlayerVsObstacles(this.player)
+    this.player.updatePosition()
+    AABBCollider.handleCoinPickups(this.player)
+
+    const sm = typeof window !== 'undefined' ? window.__sceneManager : null
+    if (sm && typeof sm.checkProgress === 'function') {
+      sm.checkProgress()
+    }
+
+    requestAnimationFrame(this.animate)
+  }
+
+  #animateHorizontalMovement() {
+    if (this.input.playerWantsToGoLeft() && this.player.positionX > 0) {
+      this.player.positionX -= this.movementSpeed
+    }
+    if (this.input.playerWantsToGoRight() && this.player.positionX < window.innerWidth - this.player.elementWidth) {
+      this.player.positionX += this.movementSpeed
+    }
+  }
+
+  #animateWASDStyle() {
+    if (this.input.playerWantsToGoUp() && this.player.positionY > 0) {
+      this.player.positionY -= this.movementSpeed
+    }
+    if (this.input.playerWantsToGoDown() && this.player.positionY < window.innerHeight - this.player.elementHeight) {
+      this.player.positionY += this.movementSpeed
+    }
+  }
+
+  #animatePlatformStyle() {
+    if (this.input.playerWantsToJump() && !this.player.isJumping) {
+      this.player.velocityY = -this.jumpStrength
+      this.player.isJumping = true
+    }
+
+    this.player.velocityY += this.gravity
+    this.player.positionY += this.player.velocityY
+
+    if (this.player.positionY >= this.groundY) {
+      this.player.positionY = this.groundY
+      this.player.velocityY = 0
+      this.player.isJumping = false
+    }
+  }
+}
+
+window.startGame = (scheme, options) => new Game(scheme, options)
+
+class SceneManager {
+  #scenes = []
+  #currentIndex = 0
+  #targetScore = null
+
+  constructor() {
+    const existing = typeof window !== 'undefined' ? window.__sceneManager : null
+    if (existing) return existing
+    if (typeof window !== 'undefined') window.__sceneManager = this
+  }
+
+  add(sceneFn, targetScore = null) {
+    this.#scenes.push({ fn: sceneFn, targetScore })
+  }
+
+  set(index) {
+    if (index < 0 || index >= this.#scenes.length) return
+
+    for (const obs of obstacles) obs.remove()
+    obstacles.length = 0
+
+    for (const coin of coins) coin.remove()
+    coins.length = 0
+
+    score.reset()
+
+    this.#currentIndex = index
+    const scene = this.#scenes[this.#currentIndex]
+    this.#targetScore = scene.targetScore
+    if (typeof scene.fn === 'function') scene.fn()
+  }
+
+  checkProgress() {
+    if (this.#targetScore !== null && score.value >= this.#targetScore) {
+      this.next()
+    }
+  }
+
+  next() {
+    if (this.#currentIndex + 1 < this.#scenes.length) {
+      this.set(this.#currentIndex + 1)
+    } else {
+      console.log('No more scenes')
+    }
+  }
+
+  get index() {
+    return this.#currentIndex
+  }
+}
+
+class Menu {
+  #element = null
+
+  create({ title = 'Game Menu', buttons } = {}) {
+    if (this.#element) this.#element.remove()
+
+    this.#element = document.createElement('div')
+    this.#element.style.position = 'fixed'
+    this.#element.style.top = '0'
+    this.#element.style.left = '0'
+    this.#element.style.width = '100%'
+    this.#element.style.height = '100%'
+    this.#element.style.background = 'rgba(0,0,0,0.7)'
+    this.#element.style.display = 'flex'
+    this.#element.style.flexDirection = 'column'
+    this.#element.style.justifyContent = 'center'
+    this.#element.style.alignItems = 'center'
+    this.#element.style.zIndex = '1000'
+
+    const titleEl = document.createElement('h1')
+    titleEl.textContent = title
+    titleEl.style.color = 'white'
+    titleEl.style.marginBottom = '20px'
+    this.#element.appendChild(titleEl)
+
+    const defaultButtons = [
+      { text: 'Restart', onClick: () => window.location.reload() },
+      { text: 'Reset Score', onClick: () => score.reset() },
+      { text: 'Close', onClick: () => this.close() }
+    ]
+
+    const allButtons = buttons && buttons.length ? buttons : defaultButtons
+
+    for (const btn of allButtons) {
+      const button = document.createElement('button')
+      button.textContent = btn.text
+      button.style.margin = '10px'
+      button.style.padding = '10px 20px'
+      button.style.fontSize = '18px'
+      button.style.cursor = 'pointer'
+      button.style.borderRadius = '8px'
+      button.style.border = 'none'
+      button.addEventListener('click', btn.onClick)
+      this.#element.appendChild(button)
+    }
+
+    document.body.appendChild(this.#element)
+  }
+
+  close() {
+    if (this.#element) {
+      this.#element.remove()
+      this.#element = null
+    }
+  }
+}
+
+export { AABBCollider, Coin, Game, GameElement, Menu, Obstacle, PlayerInput, SceneManager, Score, coins, obstacles, score }
+//# sourceMappingURL=learn2dgame-js.js.map
