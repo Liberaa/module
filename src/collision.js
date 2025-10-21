@@ -5,6 +5,10 @@ import { score } from './score.js'
  * We where not allowed to use static but I saw that to late... 
  * Handles AABB (Axis-Aligned Bounding Box) collision detection.
  * Treats all objects as rectangles for fast collision checks.
+ * Static methods used here because AABBCollider is a utility class
+that provides pure collision detection functions. No instance state needed.
+This follows Clean Code's principle of "Use Static When Appropriate" for
+stateless utility functions (Chapter 10).
  */
 export class AABBCollider {
   /**
